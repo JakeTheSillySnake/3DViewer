@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Viewer</class>
+ <widget class="QMainWindow" name="Viewer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>660</width>
+    <height>468</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>3D Viewer</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: black;
+color:  white;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>660</width>
+     <height>410</height>
+    </size>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="0">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item row="1" column="0">
+     <widget class="QOpenGLWidget" name="openGLWidget">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>445</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>660</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(36, 31, 49);
+color: white;</string>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(36, 31, 49);
+color: white;
+selection-background-color: rgb(94, 92, 100);</string>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuSave_as">
+     <property name="title">
+      <string>Save as...</string>
+     </property>
+     <addaction name="action_bmp"/>
+     <addaction name="action_jpg"/>
+    </widget>
+    <addaction name="actionUpload_file"/>
+    <addaction name="menuSave_as"/>
+    <addaction name="actionMake_screencast"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(36, 31, 49);
+color: white;
+selection-background-color: rgb(94, 92, 100);</string>
+    </property>
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <widget class="QMenu" name="menuProjection_type">
+     <property name="title">
+      <string>Projection type</string>
+     </property>
+     <addaction name="actionParallel"/>
+     <addaction name="actionCentral"/>
+    </widget>
+    <widget class="QMenu" name="menuSet_texture">
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(36, 31, 49);
+color: white;
+selection-background-color: rgb(94, 92, 100);</string>
+     </property>
+     <property name="title">
+      <string>Set texture</string>
+     </property>
+     <addaction name="actionDefault"/>
+     <addaction name="actionWood"/>
+     <addaction name="actionMetal"/>
+     <addaction name="actionStone"/>
+     <addaction name="actionWater"/>
+     <addaction name="actionUpload_texture"/>
+    </widget>
+    <widget class="QMenu" name="menuVertices">
+     <property name="title">
+      <string>Vertices</string>
+     </property>
+     <widget class="QMenu" name="menuDisplay_mode">
+      <property name="title">
+       <string>Display mode</string>
+      </property>
+      <addaction name="actionNone"/>
+      <addaction name="actionCircle"/>
+      <addaction name="actionSquare"/>
+     </widget>
+     <addaction name="actionColor"/>
+     <addaction name="actionSize"/>
+     <addaction name="menuDisplay_mode"/>
+    </widget>
+    <widget class="QMenu" name="menuEdges">
+     <property name="title">
+      <string>Edges</string>
+     </property>
+     <addaction name="actionColorE"/>
+     <addaction name="actionThick"/>
+     <addaction name="actionLine"/>
+    </widget>
+    <addaction name="actionBackground"/>
+    <addaction name="menuSet_texture"/>
+    <addaction name="menuProjection_type"/>
+    <addaction name="menuEdges"/>
+    <addaction name="menuVertices"/>
+    <addaction name="actionShow_information"/>
+   </widget>
+   <widget class="QMenu" name="menuModel">
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(36, 31, 49);
+color: white;
+selection-background-color: rgb(94, 92, 100);</string>
+    </property>
+    <property name="title">
+     <string>Model</string>
+    </property>
+    <addaction name="actionRotate"/>
+    <addaction name="actionTranslate"/>
+    <addaction name="actionScale"/>
+    <addaction name="actionWireframe"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuModel"/>
+   <addaction name="menuSettings"/>
+  </widget>
+  <action name="actionUpload_file">
+   <property name="text">
+    <string>Upload file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionBackground">
+   <property name="text">
+    <string>Set background</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionParallel">
+   <property name="text">
+    <string>Parallel</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionCentral">
+   <property name="text">
+    <string>Central</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionShow_information">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show information</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionRotate">
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionTranslate">
+   <property name="text">
+    <string>Translate</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionScale">
+   <property name="text">
+    <string>Scale</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_bmp">
+   <property name="text">
+    <string>.bmp</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="action_jpg">
+   <property name="text">
+    <string>.jpg</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+  </action>
+  <action name="actionMake_screencast">
+   <property name="text">
+    <string>Make screencast</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionDefault">
+   <property name="text">
+    <string>Default</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionWood">
+   <property name="text">
+    <string>Wood</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionStone">
+   <property name="text">
+    <string>Stone</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="actionWater">
+   <property name="text">
+    <string>Water</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
+   </property>
+  </action>
+  <action name="actionUpload_texture">
+   <property name="text">
+    <string>Upload texture</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+6</string>
+   </property>
+  </action>
+  <action name="actionMetal">
+   <property name="text">
+    <string>Metal</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+   <property name="toolTip">
+    <string>Wireframe</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionSize">
+   <property name="text">
+    <string>Size</string>
+   </property>
+  </action>
+  <action name="actionColorE">
+   <property name="text">
+    <string>Color</string>
+   </property>
+  </action>
+  <action name="actionThick">
+   <property name="text">
+    <string>Width</string>
+   </property>
+  </action>
+  <action name="actionLine">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dashed</string>
+   </property>
+  </action>
+  <action name="actionNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionCircle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Circle</string>
+   </property>
+  </action>
+  <action name="actionSquare">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Square</string>
+   </property>
+  </action>
+  <action name="actionColor">
+   <property name="text">
+    <string>Color</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
