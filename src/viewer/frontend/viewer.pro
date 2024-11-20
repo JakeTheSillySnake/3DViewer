@@ -9,19 +9,19 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    controller.cpp \
-    main.cpp \
-    model.cpp \
+    ../backend/controller.cpp \
+    ../main.cpp \
+    ../backend/model.cpp \
     openglviewer.cpp \
     viewer.cpp
 
 HEADERS += \
-    controller.h \
-    model.h \
+    ../backend/controller.h \
+    ../backend/model.h \
     openglviewer.h \
     viewer.h \
-    ../external/stb_image_write.h \
-    ../external/gif.h
+    ../../external/stb_image_write.h \
+    ../../external/gif.h
 
 FORMS += \
     viewer.ui

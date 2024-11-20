@@ -1,7 +1,7 @@
 #ifndef OpenGLViewer_H
 #define OpenGLViewer_H
 
-#include "controller.h"
+#include "../backend/controller.h"
 
 class Viewer;
 

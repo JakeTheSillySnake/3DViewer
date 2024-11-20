@@ -28,8 +28,8 @@ class Model : public QObject {
   // Settings (default)
   QQuaternion rotation;
   QString path = "";
-  QString texPath = "../assets/textures/default.png";
-  char *settPath = "../assets/settings.conf";
+  QString texPath = "../../assets/textures/default.png";
+  char *settPath = "../../assets/settings.conf";
   float bgColor[3] = {0, 0, 0}, wireColor[3] = {255, 255, 255}, pointColor[3] = {255, 255, 255};
   bool isWireframe = false, isDashed = false, showInfo = true;
   int lineSize = 1, pointMode = 1, pointSize = 5;

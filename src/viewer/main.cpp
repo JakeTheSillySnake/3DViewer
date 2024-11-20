@@ -1,7 +1,7 @@
 #include <QApplication>
 
-#include "openglviewer.h"
-#include "viewer.h"
+#include "frontend/openglviewer.h"
+#include "frontend/viewer.h"
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);

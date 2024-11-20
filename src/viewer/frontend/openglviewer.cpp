@@ -1,9 +1,9 @@
 #include "openglviewer.h"
 
-#include "../external/gif.h"
+#include "../../external/gif.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION  // only where it's used
-#include "../external/stb_image_write.h"
+#include "../../external/stb_image_write.h"
 
 OpenGLViewer::OpenGLViewer(QWidget *parent, Model *model)
     : QOpenGLWidget{parent},
@@ -172,15 +172,15 @@ void OpenGLViewer::setTexture(QString filename) {
 
 void OpenGLViewer::initShaders() {
   QFile tex = QFileInfo(model->texPath).absoluteFilePath();
-  if (!tex.exists()) model->texPath = "../assets/textures/default.png";
+  if (!tex.exists()) model->texPath = "../../assets/textures/default.png";
   m_texture = new QOpenGLTexture(
       QImage(QFileInfo(model->texPath).absoluteFilePath()).mirrored());
   m_program.addShaderFromSourceFile(
       QOpenGLShader::Vertex,
-      QFileInfo("../assets/vshader.vsh").absoluteFilePath());
+      QFileInfo("../../assets/shaders/vshader.vsh").absoluteFilePath());
   m_program.addShaderFromSourceFile(
       QOpenGLShader::Fragment,
-      QFileInfo("../assets/fshader.fsh").absoluteFilePath());
+      QFileInfo("../../assets/shaders/fshader.fsh").absoluteFilePath());
   m_program.link();
   m_program.bind();
 }

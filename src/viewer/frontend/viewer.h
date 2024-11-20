@@ -1,7 +1,7 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
-#include "controller.h"
+#include "../backend/controller.h"
 #include "openglviewer.h"
 
 QT_BEGIN_NAMESPACE

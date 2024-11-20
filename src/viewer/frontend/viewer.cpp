@@ -19,7 +19,7 @@ Viewer::~Viewer() { delete ui; }
 
 void Viewer::loadFont() {
   QFontDatabase::addApplicationFont(
-      QFileInfo("../assets/purisa_font.ttf").absoluteFilePath());
+      QFileInfo("../../assets/purisa_font.ttf").absoluteFilePath());
   font = new QFont;
   font->setFamily("Purisa");
   font->setBold(true);
@@ -203,21 +203,21 @@ void Viewer::openTex() {
 }
 
 void Viewer::defaultTex() {
-  glWindow->setTexture("../assets/textures/default.png");
+  glWindow->setTexture("../../assets/textures/default.png");
 }
 
-void Viewer::woodTex() { glWindow->setTexture("../assets/textures/wood.png"); }
+void Viewer::woodTex() { glWindow->setTexture("../../assets/textures/wood.png"); }
 
 void Viewer::metalTex() {
-  glWindow->setTexture("../assets/textures/metal.png");
+  glWindow->setTexture("../../assets/textures/metal.png");
 }
 
 void Viewer::stoneTex() {
-  glWindow->setTexture("../assets/textures/stone.png");
+  glWindow->setTexture("../../assets/textures/stone.png");
 }
 
 void Viewer::waterTex() {
-  glWindow->setTexture("../assets/textures/water.png");
+  glWindow->setTexture("../../assets/textures/water.png");
 }
 
 void Viewer::saveJPG() { glWindow->saveIMG(1); }
