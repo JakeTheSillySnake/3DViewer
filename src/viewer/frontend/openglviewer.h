@@ -5,64 +5,45 @@
 
 class Viewer;
 
+namespace s21 {
 class OpenGLViewer : public QOpenGLWidget {
   friend class Viewer;
   Q_OBJECT
 
  public:
-  explicit OpenGLViewer(QWidget *parent, Model *model);
-  void setVec3(float red, float green, float blue);
-  void saveIMG(int mode);
-  std::vector<uint8_t> writeFrame(int width, int height, int channels);
-  void setTexture(QString filename);
-  void saveGIF(float x, float y, float z);
-  void genTexture(float red, float green, float blue);
-  void setMode();
-  void setMatrix();
-  char *genFilename(QString name);
-  ~OpenGLViewer();
-
- protected:
-  virtual void initializeGL();
-  virtual void resizeGL(int nWidth, int nHeight);
-  virtual void paintGL();
-  void initShaders();
-
- private:
-  QMatrix4x4 projectMatrix;
-  QVector<VertexData> vertexes;
-  QVector<GLuint> indexes;
+  QMatrix4x4 projectMatrix, modelViewMatrix;
   QOpenGLShaderProgram m_program;
   QOpenGLTexture *m_texture;
-  QOpenGLBuffer m_arrayBuffer;
-  QOpenGLBuffer m_indexBuffer;
-  QMatrix4x4 modelViewMatrix;
+  QOpenGLBuffer m_arrayBuffer, m_indexBuffer;
   Model *model;
-  char typeProj = 'c';
+  QPointF mousePos;
 
- private slots:
+  OpenGLViewer(QWidget *parent, Model *model);
+  ~OpenGLViewer();
+  void setTexture(QString filename);
+  void genTexture(float red, float green, float blue);
+  char *genFilename(QString name);
+  void saveGIF(float x, float y, float z);
+  std::vector<uint8_t> writeFrame(int width, int height, int channels);
+  void setMode();
+  void setMatrix();
+
+ public slots:
+  void saveIMG(int mode);
   void dataProcessing();
-  void rotateModelX(float angle);
-  void rotateModelY(float angle);
-  void rotateModelZ(float angle);
-  void scaleModelX(int direction);
-  void scaleModelY(int direction);
-  void scaleModelZ(int direction);
-  void translateModeleX(int direction);
-  void translateModeleY(int direction);
-  void translateModeleZ(int direction);
-  void setProj();
+  void rotateModel(float angleX, float angleY, float angleZ);
+  void scaleModel(float dirX, float dirY, float dirZ);
+  void translateModel(float dirX, float dirY, float dirZ);
 
- signals:
-  void rotateModelSignalX(float angle);
-  void rotateModelSignalY(float angle);
-  void rotateModelSignalZ(float angle);
-  void scaleModelSignalX(int direction);
-  void scaleModelSignalY(int direction);
-  void scaleModelSignalZ(int direction);
-  void translateModeleSignalX(int direction);
-  void translateModeleSignalY(int direction);
-  void translateModeleSignalZ(int direction);
+ private:
+  void initializeGL();
+  void resizeGL(int nWidth, int nHeight);
+  void paintGL();
+  void mousePressEvent(QMouseEvent *event);
+  void mouseMoveEvent(QMouseEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event);
+  void mouseWheelEvent(QWheelEvent *event);
+  void initShaders();
 };
-
+}  // namespace s21
 #endif  // OpenGLViewer_H

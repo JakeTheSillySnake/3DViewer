@@ -4,6 +4,8 @@
 #include "../backend/controller.h"
 #include "openglviewer.h"
 
+using namespace s21;
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Viewer;
@@ -28,32 +30,20 @@ class Viewer : public QMainWindow {
   void addButton(int x, int y, int width, int height, QString text);
 
  private slots:
-  void pointColor();
-  void pointSize();
   void pointMode0();
   void pointMode1();
   void pointMode2();
   void toggleDashed();
-  void thickness();
-  void wireColor();
   void toggleWireframe();
+  void toggleProj();
   void saveJPG();
   void saveBMP();
   void saveGIF();
   void openFile();
-  void openTex();
-  void defaultTex();
-  void woodTex();
-  void metalTex();
-  void stoneTex();
-  void waterTex();
+  void showInfo();
   void rotate();
   void translate();
   void scale();
-  void showInfo();
-  void changeBackground();
-  // controller end
-
   void keyPressEvent(QKeyEvent *event);
 
  private:

@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>468</height>
+    <height>489</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>3D Viewer</string>
@@ -19,14 +25,14 @@ color:  white;</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>660</width>
+     <width>640</width>
      <height>410</height>
     </size>
    </property>
@@ -54,9 +60,15 @@ color:  white;</string>
     </property>
     <item row="1" column="0">
      <widget class="QOpenGLWidget" name="openGLWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
-        <width>400</width>
+        <width>640</width>
         <height>445</height>
        </size>
       </property>
@@ -67,7 +79,14 @@ color:  white;</string>
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -76,6 +95,12 @@ color:  white;</string>
      <width>660</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="styleSheet">
     <string notr="true">background-color: rgb(36, 31, 49);
@@ -111,13 +136,6 @@ selection-background-color: rgb(94, 92, 100);</string>
     <property name="title">
      <string>Settings</string>
     </property>
-    <widget class="QMenu" name="menuProjection_type">
-     <property name="title">
-      <string>Projection type</string>
-     </property>
-     <addaction name="actionParallel"/>
-     <addaction name="actionCentral"/>
-    </widget>
     <widget class="QMenu" name="menuSet_texture">
      <property name="styleSheet">
       <string notr="true">background-color: rgb(36, 31, 49);
@@ -160,7 +178,6 @@ selection-background-color: rgb(94, 92, 100);</string>
     </widget>
     <addaction name="actionBackground"/>
     <addaction name="menuSet_texture"/>
-    <addaction name="menuProjection_type"/>
     <addaction name="menuEdges"/>
     <addaction name="menuVertices"/>
     <addaction name="actionShow_information"/>
@@ -178,6 +195,7 @@ selection-background-color: rgb(94, 92, 100);</string>
     <addaction name="actionTranslate"/>
     <addaction name="actionScale"/>
     <addaction name="actionWireframe"/>
+    <addaction name="actionParallel"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuModel"/>
@@ -205,22 +223,6 @@ selection-background-color: rgb(94, 92, 100);</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
-   </property>
-  </action>
-  <action name="actionParallel">
-   <property name="text">
-    <string>Parallel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+P</string>
-   </property>
-  </action>
-  <action name="actionCentral">
-   <property name="text">
-    <string>Central</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionShow_information">
@@ -366,6 +368,9 @@ selection-background-color: rgb(94, 92, 100);</string>
    <property name="text">
     <string>Dashed</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
   <action name="actionNone">
    <property name="checkable">
@@ -373,6 +378,9 @@ selection-background-color: rgb(94, 92, 100);</string>
    </property>
    <property name="text">
     <string>None</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+N</string>
    </property>
   </action>
   <action name="actionCircle">
@@ -382,6 +390,9 @@ selection-background-color: rgb(94, 92, 100);</string>
    <property name="text">
     <string>Circle</string>
    </property>
+   <property name="shortcut">
+    <string>Shift+C</string>
+   </property>
   </action>
   <action name="actionSquare">
    <property name="checkable">
@@ -390,10 +401,24 @@ selection-background-color: rgb(94, 92, 100);</string>
    <property name="text">
     <string>Square</string>
    </property>
+   <property name="shortcut">
+    <string>Shift+S</string>
+   </property>
   </action>
   <action name="actionColor">
    <property name="text">
     <string>Color</string>
+   </property>
+  </action>
+  <action name="actionParallel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Parallel projection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>

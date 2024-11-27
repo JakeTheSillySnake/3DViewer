@@ -4,8 +4,7 @@
 #include <QtOpenGL>
 #include <iostream>
 
-class OpenGLViewer;
-class Controller;
+namespace s21 {
 
 struct VertexData {
   VertexData() {}
@@ -18,33 +17,34 @@ struct VertexData {
 
 class Model : public QObject {
   Q_OBJECT
-  friend class OpenGLViewer;
-  friend class Controller;
-
- signals:
-  void changeFileSignal();
 
  public:
-  // Settings (default)
+  QVector<VertexData> triangles;
+  QVector<GLuint> indices;
   QQuaternion rotation;
   QString path = "";
   QString texPath = "../../assets/textures/default.png";
-  char *settPath = "../../assets/settings.conf";
-  float bgColor[3] = {0, 0, 0}, wireColor[3] = {255, 255, 255}, pointColor[3] = {255, 255, 255};
-  bool isWireframe = false, isDashed = false, showInfo = true;
+  QString settPath = "../../assets/settings.conf";
+  bool isWireframe = false, isDashed = false, showInfo = true, isParallel = false;
   int lineSize = 1, pointMode = 1, pointSize = 5;
-  int scaleX = 0, scaleY = 0, scaleZ = 0;
-  int translateX = 0, translateY = 0, translateZ = 0;
+  float scaleX = 0, scaleY = 0, scaleZ = 0;
+  float translateX = 0, translateY = 0, translateZ = 0;
+  float bgColor[3] = {0, 0, 0};
+  float wireColor[3] = {255, 255, 255};
+  float pointColor[3] = {255, 255, 255};
+  float rotationX = 0, rotationY = 0, prevRotY = 0, prevRotX = 0;
 
   Model() { loadSettings(); }
   ~Model() { saveSettings(); }
-  void changeModelSendSignal();
   void loadSettings();
   void saveSettings();
   void loadOBJ();
 
- private:
-  QVector<QString> fileLines;
+ signals:
+  void updateSignal();
+  void uploadFileSignal();
+  void repaintModelSignal();
 };
+}  // namespace s21
 
 #endif  // MODEL_H

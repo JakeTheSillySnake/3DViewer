@@ -3,13 +3,33 @@
 
 #include "model.h"
 
-class Controller {
+namespace s21 {
+class Controller : public QWidget {
+  Q_OBJECT
+
  public:
+  Model *model;
+
   Controller(Model *model);
-  ~Controller() = default;
+  ~Controller(){};
   void changeFile(QString &path);
 
-  Model *m;
+ public slots:
+  void pointColor();
+  void pointSize();
+  void pointMode0();
+  void pointMode1();
+  void pointMode2();
+  void thickness();
+  void wireColor();
+  void openTex();
+  void defaultTex();
+  void woodTex();
+  void metalTex();
+  void stoneTex();
+  void waterTex();
+  void changeBackground();
 };
+}  // namespace s21
 
 #endif  // CONTROLLER_H

@@ -2,16 +2,18 @@
 
 #include "ui_viewer.h"
 
+using namespace s21;
+
 Viewer::Viewer(Controller *controller, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::Viewer) {
   ui->setupUi(this);
-  glWindow = new OpenGLViewer(nullptr, controller->m);
+  glWindow = new OpenGLViewer(nullptr, controller->model);
   c = controller;
   setCentralWidget(glWindow);
   loadFont();
   viewSetup();
   connectSlots();
-  c->changeFile(c->m->path);
+  c->changeFile(c->model->path);
   drawField();
 }
 
@@ -24,18 +26,13 @@ void Viewer::loadFont() {
   font->setFamily("Purisa");
   font->setBold(true);
   font->setPixelSize(15);
-
   setFont(*font);
+  std::vector<QMenu *> items = {ui->menuFile,        ui->menuSettings,
+                                ui->menuSave_as,     ui->menuSet_texture,
+                                ui->menuEdges,       ui->menuVertices,
+                                ui->menuDisplay_mode, ui->menuModel};
+  for (int i = 0; i < (int)items.size(); i++) items[i]->setFont(*font);
   ui->menubar->setFont(*font);
-  ui->menuFile->setFont(*font);
-  ui->menuSettings->setFont(*font);
-  ui->menuModel->setFont(*font);
-  ui->menuProjection_type->setFont(*font);
-  ui->menuSave_as->setFont(*font);
-  ui->menuSet_texture->setFont(*font);
-  ui->menuEdges->setFont(*font);
-  ui->menuVertices->setFont(*font);
-  ui->menuDisplay_mode->setFont(*font);
 }
 
 void Viewer::viewSetup() {
@@ -57,15 +54,19 @@ void Viewer::viewSetup() {
   view->setStyleSheet("background-color: rgb(36, 31, 49);");
 
   dock->setWidget(view);
-  if (!c->m->showInfo) {
+  if (!c->model->showInfo) {
     dock->setVisible(false);
   } else
     ui->actionShow_information->setChecked(true);
-  if (c->m->isWireframe) ui->actionWireframe->setChecked(true);
-  if (c->m->isDashed) ui->actionLine->setChecked(true);
-  if (c->m->pointMode == 0) ui->actionNone->setChecked(true);
-  else if (c->m->pointMode == 1) ui->actionSquare->setChecked(true);
-  else ui->actionCircle->setChecked(true);
+  if (c->model->isWireframe) ui->actionWireframe->setChecked(true);
+  if (c->model->isDashed) ui->actionLine->setChecked(true);
+  if (c->model->pointMode == 0)
+    ui->actionNone->setChecked(true);
+  else if (c->model->pointMode == 1)
+    ui->actionSquare->setChecked(true);
+  else
+    ui->actionCircle->setChecked(true);
+  if (c->model->isParallel) ui->actionParallel->setChecked(true);
 }
 
 void Viewer::connectSlots() {
@@ -73,117 +74,77 @@ void Viewer::connectSlots() {
   connect(ui->actionUpload_file, SIGNAL(triggered()), this, SLOT(openFile()));
   connect(ui->actionShow_information, SIGNAL(triggered()), this,
           SLOT(showInfo()));
-  connect(ui->actionBackground, SIGNAL(triggered()), this,
+  connect(ui->actionBackground, SIGNAL(triggered()), c,
           SLOT(changeBackground()));
-  connect(ui->actionParallel, SIGNAL(triggered()), glWindow, SLOT(setProj()));
-  connect(ui->actionCentral, SIGNAL(triggered()), glWindow, SLOT(setProj()));
+  connect(ui->actionParallel, SIGNAL(triggered()), this, SLOT(toggleProj()));
   connect(ui->actionRotate, SIGNAL(triggered()), this, SLOT(rotate()));
   connect(ui->actionTranslate, SIGNAL(triggered()), this, SLOT(translate()));
   connect(ui->actionScale, SIGNAL(triggered()), this, SLOT(scale()));
   connect(ui->action_jpg, SIGNAL(triggered()), this, SLOT(saveJPG()));
   connect(ui->action_bmp, SIGNAL(triggered()), this, SLOT(saveBMP()));
-  connect(ui->actionDefault, SIGNAL(triggered()), this, SLOT(defaultTex()));
-  connect(ui->actionWood, SIGNAL(triggered()), this, SLOT(woodTex()));
-  connect(ui->actionMetal, SIGNAL(triggered()), this, SLOT(metalTex()));
-  connect(ui->actionStone, SIGNAL(triggered()), this, SLOT(stoneTex()));
-  connect(ui->actionWater, SIGNAL(triggered()), this, SLOT(waterTex()));
-  connect(ui->actionUpload_texture, SIGNAL(triggered()), this, SLOT(openTex()));
+  connect(ui->actionDefault, SIGNAL(triggered()), c, SLOT(defaultTex()));
+  connect(ui->actionWood, SIGNAL(triggered()), c, SLOT(woodTex()));
+  connect(ui->actionMetal, SIGNAL(triggered()), c, SLOT(metalTex()));
+  connect(ui->actionStone, SIGNAL(triggered()), c, SLOT(stoneTex()));
+  connect(ui->actionWater, SIGNAL(triggered()), c, SLOT(waterTex()));
+  connect(ui->actionUpload_texture, SIGNAL(triggered()), c, SLOT(openTex()));
   connect(ui->actionMake_screencast, SIGNAL(triggered()), this,
           SLOT(saveGIF()));
   connect(ui->actionWireframe, SIGNAL(triggered()), this,
           SLOT(toggleWireframe()));
-  connect(ui->actionColorE, SIGNAL(triggered()), this, SLOT(wireColor()));
-  connect(ui->actionThick, SIGNAL(triggered()), this, SLOT(thickness()));
+  connect(ui->actionColorE, SIGNAL(triggered()), c, SLOT(wireColor()));
+  connect(ui->actionThick, SIGNAL(triggered()), c, SLOT(thickness()));
   connect(ui->actionLine, SIGNAL(triggered()), this, SLOT(toggleDashed()));
   connect(ui->actionNone, SIGNAL(triggered()), this, SLOT(pointMode0()));
   connect(ui->actionSquare, SIGNAL(triggered()), this, SLOT(pointMode1()));
   connect(ui->actionCircle, SIGNAL(triggered()), this, SLOT(pointMode2()));
-  connect(ui->actionSize, SIGNAL(triggered()), this, SLOT(pointSize()));
-  connect(ui->actionColor, SIGNAL(triggered()), this, SLOT(pointColor()));
+  connect(ui->actionSize, SIGNAL(triggered()), c, SLOT(pointSize()));
+  connect(ui->actionColor, SIGNAL(triggered()), c, SLOT(pointColor()));
 }
 
 void Viewer::drawField() {
   scene->clear();
-  filename = c->m->path;
-  edges = (glWindow->vertexes.size() + 1) / 2;
-  vertices = glWindow->vertexes.size();
+  edges = (c->model->triangles.size() + 1) / 2;
+  vertices = c->model->triangles.size();
+  if (edges) filename = c->model->path;
+  else filename = "";
   drawStats();
   view->update();
 }
 
-// CONTROLLER STUFF //
-
-void Viewer::pointColor() {
-  QColor color = QColorDialog::getColor(Qt::white, this, "Choose Color");
-  if (color.isValid()) {
-    glWindow->model->pointColor[0] = color.red();
-    glWindow->model->pointColor[1] = color.green();
-    glWindow->model->pointColor[2] = color.blue();
-  }
-  glWindow->repaint();
-}
-
-void Viewer::pointSize() {
-  bool ok;
-  int res = QInputDialog::getInt(0, "Point Size", "px", 1, 1, 15, 1, &ok);
-  if (ok) glWindow->model->pointSize = res;
-  glWindow->repaint();
-}
-
 void Viewer::pointMode0() {
-  glWindow->model->pointMode = 0;
+  c->pointMode0();
   ui->actionNone->setChecked(true);
   ui->actionCircle->setChecked(false);
   ui->actionSquare->setChecked(false);
-  glWindow->repaint();
 }
 
 void Viewer::pointMode1() {
-  glWindow->model->pointMode = 1;
+  c->pointMode1();
   ui->actionNone->setChecked(false);
   ui->actionCircle->setChecked(false);
   ui->actionSquare->setChecked(true);
-  glWindow->repaint();
 }
 
 void Viewer::pointMode2() {
-  glWindow->model->pointMode = 2;
+  c->pointMode2();
   ui->actionNone->setChecked(false);
   ui->actionCircle->setChecked(true);
   ui->actionSquare->setChecked(false);
-  glWindow->repaint();
 }
 
 void Viewer::toggleDashed() {
-  if (ui->actionLine->isChecked())
-    glWindow->model->isDashed = true;
-  else
-    glWindow->model->isDashed = false;
-  glWindow->repaint();
-}
-
-void Viewer::thickness() {
-  bool ok;
-  int res = QInputDialog::getInt(0, "Line Width", "px", 1, 1, 20, 1, &ok);
-  if (ok) glWindow->model->lineSize = res;
-  glWindow->repaint();
-}
-
-void Viewer::wireColor() {
-  QColor color = QColorDialog::getColor(Qt::white, this, "Choose Color");
-  if (color.isValid()) {
-    glWindow->model->wireColor[0] = color.red();
-    glWindow->model->wireColor[1] = color.green();
-    glWindow->model->wireColor[2] = color.blue();
-  }
+  glWindow->model->isDashed = ui->actionLine->isChecked();
   glWindow->repaint();
 }
 
 void Viewer::toggleWireframe() {
-  if (ui->actionWireframe->isChecked())
-    glWindow->model->isWireframe = true;
-  else
-    glWindow->model->isWireframe = false;
+  glWindow->model->isWireframe = ui->actionWireframe->isChecked();
+  glWindow->repaint();
+}
+
+void Viewer::toggleProj() {
+  glWindow->model->isParallel = ui->actionParallel->isChecked();
   glWindow->repaint();
 }
 
@@ -191,33 +152,9 @@ void Viewer::saveGIF() {
   std::pair<QStringList, bool> res = inputBox("Rotate Animation");
   if (res.second) {
     auto it = res.first.begin();
-    glWindow->saveGIF((*it++).toFloat(), (*it++).toFloat(), (*it).toFloat());
+    float x = (*it++).toFloat(), y = (*it++).toFloat(), z = (*it).toFloat();
+    glWindow->saveGIF(x, y, z);
   }
-}
-
-void Viewer::openTex() {
-  filename =
-      QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath(),
-                                   tr("Images (*jpg *jpeg *bmp *png *tiff)"));
-  if (!filename.isEmpty()) glWindow->setTexture(filename);
-}
-
-void Viewer::defaultTex() {
-  glWindow->setTexture("../../assets/textures/default.png");
-}
-
-void Viewer::woodTex() { glWindow->setTexture("../../assets/textures/wood.png"); }
-
-void Viewer::metalTex() {
-  glWindow->setTexture("../../assets/textures/metal.png");
-}
-
-void Viewer::stoneTex() {
-  glWindow->setTexture("../../assets/textures/stone.png");
-}
-
-void Viewer::waterTex() {
-  glWindow->setTexture("../../assets/textures/water.png");
 }
 
 void Viewer::saveJPG() { glWindow->saveIMG(1); }
@@ -232,20 +169,16 @@ void Viewer::openFile() {
 }
 
 void Viewer::showInfo() {
-  if (ui->actionShow_information->isChecked())
-    dock->setVisible(true);
-  else
-    dock->setVisible(false);
-  c->m->showInfo = dock->isVisible();
+  dock->setVisible(ui->actionShow_information->isChecked());
+  c->model->showInfo = dock->isVisible();
 }
 
 void Viewer::rotate() {
   std::pair<QStringList, bool> res = inputBox("Rotate Model");
   if (res.second) {
     auto it = res.first.begin();
-    glWindow->rotateModelX((*it++).toFloat());
-    glWindow->rotateModelY((*it++).toFloat());
-    glWindow->rotateModelZ((*it).toFloat());
+    float x = (*it++).toFloat(), y = (*it++).toFloat(), z = (*it).toFloat();
+    glWindow->rotateModel(x, y, z);
   }
 }
 
@@ -253,9 +186,8 @@ void Viewer::translate() {
   std::pair<QStringList, bool> res = inputBox("Translate Model");
   if (res.second) {
     auto it = res.first.begin();
-    glWindow->translateModeleX((*it++).toFloat());
-    glWindow->translateModeleY((*it++).toFloat());
-    glWindow->translateModeleZ((*it).toFloat());
+    float x = (*it++).toFloat(), y = (*it++).toFloat(), z = (*it).toFloat();
+    glWindow->translateModel(x, y, z);
   }
 }
 
@@ -263,27 +195,15 @@ void Viewer::scale() {
   std::pair<QStringList, bool> res = inputBox("Scale Model");
   if (res.second) {
     auto it = res.first.begin();
-    glWindow->scaleModelX((*it++).toFloat());
-    glWindow->scaleModelY((*it++).toFloat());
-    glWindow->scaleModelZ((*it).toFloat());
+    float x = (*it++).toFloat(), y = (*it++).toFloat(), z = (*it).toFloat();
+    glWindow->scaleModel(x, y, z);
   }
 }
 
-void Viewer::changeBackground() {
-  QColor color = QColorDialog::getColor(Qt::white, this, "Choose Color");
-  if (color.isValid())
-    glWindow->setVec3(color.red(), color.green(), color.blue());
-  glWindow->repaint();
-  glWindow->update();
-}
-
-// END OF CONTROLLER STUFF //
-
 std::pair<QStringList, bool> Viewer::inputBox(QString action) {
   std::pair<QStringList, bool> res;
-  QDialog dialog(this);
+  QDialog dialog(0);
   dialog.setWindowTitle(action);
-  dialog.setParent(0);
   QFormLayout form(&dialog);
   form.addRow(new QLabel("Degrees:"));
   QLineEdit *fields[3];
@@ -312,16 +232,7 @@ std::pair<QStringList, bool> Viewer::inputBox(QString action) {
 
 void Viewer::drawStats() {
   QStringList pieces = filename.split("/");
-  QString formattedName;
-  if (pieces.length() > 5) {
-    QList<QString>::iterator it = ++pieces.begin();
-    formattedName = QString("/%1/%2/%3/.../%4")
-                        .arg(*(it++))
-                        .arg(*(it++))
-                        .arg(*(it++))
-                        .arg(*(--pieces.end()));
-  } else
-    formattedName = filename;
+  QString formattedName = *(--pieces.end());
   auto text = scene->addSimpleText(QString("File: %1").arg(formattedName));
   addText(*font, text, 5, 3);
   text = scene->addSimpleText(QString("Edges: %1").arg(QString::number(edges)));
@@ -379,51 +290,51 @@ void Viewer::keyPressEvent(QKeyEvent *event) {
   switch (event->key()) {
     case Qt::Key_S:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalY(-1);
+        glWindow->scaleModel(0, -1, 0);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalY(-1);
+        glWindow->translateModel(0, -1, 0);
       else
-        emit glWindow->rotateModelSignalX(1.0);
+        glWindow->rotateModel(1, 0, 0);
       break;
     case Qt::Key_W:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalY(1);
+        glWindow->scaleModel(0, 1, 0);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalY(1);
+        glWindow->translateModel(0, 1, 0);
       else
-        emit glWindow->rotateModelSignalX(-1.0);
+        glWindow->rotateModel(-1, 0, 0);
       break;
     case Qt::Key_Q:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalX(1);
+        glWindow->scaleModel(1, 0, 0);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalZ(-1);
+        glWindow->translateModel(0, 0, -1);
       else
-        emit glWindow->rotateModelSignalY(-1.0);
+        glWindow->rotateModel(0, -1, 0);
       break;
     case Qt::Key_E:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalX(-1);
+        glWindow->scaleModel(-1, 0, 0);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalZ(1);
+        glWindow->translateModel(0, 0, 1);
       else
-        emit glWindow->rotateModelSignalY(1.0);
+        glWindow->rotateModel(0, 1, 0);
       break;
     case Qt::Key_A:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalZ(1);
+        glWindow->scaleModel(0, 0, 1);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalX(-1);
+        glWindow->translateModel(-1, 0, 0);
       else
-        emit glWindow->rotateModelSignalZ(1.0);
+        glWindow->rotateModel(0, 0, 1);
       break;
     case Qt::Key_D:
       if (event->modifiers() == Qt::ShiftModifier)
-        emit glWindow->scaleModelSignalZ(-1);
+        glWindow->scaleModel(0, 0, -1);
       else if (event->modifiers() == Qt::AltModifier)
-        emit glWindow->translateModeleSignalX(1);
+        glWindow->translateModel(1, 0, 0);
       else
-        emit glWindow->rotateModelSignalZ(-1.0);
+        glWindow->rotateModel(0, 0, -1);
       break;
   }
   drawField();

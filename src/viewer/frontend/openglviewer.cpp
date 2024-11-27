@@ -1,48 +1,34 @@
 #include "openglviewer.h"
 
-#include "../../external/gif.h"
+#include "../../external/gif.h"  // saving
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION  // only where it's used
+#define STB_IMAGE_WRITE_IMPLEMENTATION  // saving jpg, bmp
 #include "../../external/stb_image_write.h"
+
+using namespace s21;
 
 OpenGLViewer::OpenGLViewer(QWidget *parent, Model *model)
     : QOpenGLWidget{parent},
       m_texture(0),
       m_indexBuffer(QOpenGLBuffer::IndexBuffer),
-      model(model) {
-  connect(model, SIGNAL(changeFileSignal()), this, SLOT(dataProcessing()));
-  connect(this, SIGNAL(rotateModelSignalX(float)), this,
-          SLOT(rotateModelX(float)));
-  connect(this, SIGNAL(rotateModelSignalY(float)), this,
-          SLOT(rotateModelY(float)));
-  connect(this, SIGNAL(rotateModelSignalZ(float)), this,
-          SLOT(rotateModelZ(float)));
-  connect(this, SIGNAL(scaleModelSignalX(int)), this, SLOT(scaleModelX(int)));
-  connect(this, SIGNAL(scaleModelSignalY(int)), this, SLOT(scaleModelY(int)));
-  connect(this, SIGNAL(scaleModelSignalZ(int)), this, SLOT(scaleModelZ(int)));
-  connect(this, SIGNAL(translateModeleSignalX(int)), this,
-          SLOT(translateModeleX(int)));
-  connect(this, SIGNAL(translateModeleSignalY(int)), this,
-          SLOT(translateModeleY(int)));
-  connect(this, SIGNAL(translateModeleSignalZ(int)), this,
-          SLOT(translateModeleZ(int)));
-}
+      model(model) {}
 
 void OpenGLViewer::initializeGL() {
-  glClearColor(model->bgColor[0] / 255.0, model->bgColor[1] / 255.0,
-               model->bgColor[2] / 255.0, 1.0);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   initShaders();
   dataProcessing();
+  connect(model, SIGNAL(updateSignal()), this, SLOT(update()));
+  connect(model, SIGNAL(uploadFileSignal()), this, SLOT(dataProcessing()));
+  connect(model, SIGNAL(repaintModelSignal()), this, SLOT(repaint()));
 }
 
 void OpenGLViewer::resizeGL(int nWidth, int nHeight) {
   float aspect = nWidth / (float)nHeight;
   projectMatrix.setToIdentity();
-  if (typeProj == 'c')
+  if (!model->isParallel)
     projectMatrix.perspective(45, aspect, 0.1f, 800.0f);
-  else if (typeProj == 'p')
+  else
     projectMatrix.ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 800.0f);
 }
 
@@ -50,31 +36,21 @@ void OpenGLViewer::paintGL() {
   resizeGL(this->width(), this->height());
   setMode();
   setMatrix();
-  m_arrayBuffer.bind();
-  int vertLoc = m_program.attributeLocation("qt_Vertex");
-  m_program.enableAttributeArray(vertLoc);
-  m_program.setAttributeBuffer(vertLoc, GL_FLOAT, 0, 3, sizeof(VertexData));
-  int textLoc = m_program.attributeLocation("qt_MultiTexCoord0");
-  m_program.enableAttributeArray(textLoc);
-  m_program.setAttributeBuffer(textLoc, GL_FLOAT, sizeof(QVector3D), 2,
-                               sizeof(VertexData));
-  m_indexBuffer.bind();
-  glLineWidth(model->lineSize);
-  glPointSize(model->pointSize);
   if (model->isWireframe && model->pointMode) {
-      genTexture(model->pointColor[0], model->pointColor[1], model->pointColor[2]);
-      glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
-    }
+    genTexture(model->pointColor[0], model->pointColor[1],
+               model->pointColor[2]);
+    glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
+  }
   if (model->isWireframe) {
-      genTexture(model->wireColor[0], model->wireColor[1], model->wireColor[2]);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
+    genTexture(model->wireColor[0], model->wireColor[1], model->wireColor[2]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  }
   glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void OpenGLViewer::setMode() {
-  m_texture->bind(0);
+  setTexture(model->texPath);
   if (model->isDashed && model->isWireframe) {
     glEnable(GL_LINE_STIPPLE);
     glLineStipple(4, 0xAAAA);
@@ -90,62 +66,51 @@ void OpenGLViewer::setMode() {
     } else {
       glDisable(GL_POINT_SMOOTH);
       glDisable(GL_BLEND);
-      }
+    }
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(model->bgColor[0] / 255.0, model->bgColor[1] / 255.0,
                model->bgColor[2] / 255.0, 1.0f);
+  glLineWidth(model->lineSize);
+  glPointSize(model->pointSize);
 }
 
 void OpenGLViewer::setMatrix() {
   modelViewMatrix.setToIdentity();
   modelViewMatrix.translate(0.01 * model->translateX, 0.01 * model->translateY,
-                            -5.0 + 0.01 * model->translateZ);
+                            0.01 * model->translateZ - 5.0);
   modelViewMatrix.rotate(model->rotation);
+  modelViewMatrix.rotate(model->rotationX, 1, 0, 0);
+  modelViewMatrix.rotate(model->rotationY, 0, 1, 0);
   QMatrix4x4 scalingMatrix;
   scalingMatrix.scale(1.0f + 0.01 * model->scaleX, 1.0f + 0.01 * model->scaleY,
                       1.0f + 0.01 * model->scaleZ);
   modelViewMatrix *= scalingMatrix;
   m_program.setUniformValue("qt_ModelViewProjectionMatrix",
                             projectMatrix * modelViewMatrix);
+  m_arrayBuffer.bind();
+  int vertLoc = m_program.attributeLocation("qt_Vertex");
+  m_program.enableAttributeArray(vertLoc);
+  m_program.setAttributeBuffer(vertLoc, GL_FLOAT, 0, 3, sizeof(VertexData));
+  m_indexBuffer.bind();
+  int textLoc = m_program.attributeLocation("qt_MultiTexCoord0");
+  m_program.enableAttributeArray(textLoc);
+  m_program.setAttributeBuffer(textLoc, GL_FLOAT, sizeof(QVector3D), 2,
+                               sizeof(VertexData));
   m_program.setUniformValue("qt_Texture0", 0);
 }
 
 void OpenGLViewer::dataProcessing() {
-  QVector<QVector3D> vertices, normals;
-  QVector<QVector2D> uvs;
-  vertexes.clear();
-  indexes.clear();
   if (m_arrayBuffer.isCreated()) m_arrayBuffer.destroy();
   if (m_indexBuffer.isCreated()) m_indexBuffer.destroy();
-  for (int i = 0; i < model->fileLines.size(); i++) {
-    QString str = model->fileLines[i];
-    QStringList list = str.split(" ");
-    if (list[0] == "v")
-      vertices.append(
-          QVector3D(list[1].toFloat(), list[2].toFloat(), list[3].toFloat()));
-    else if (list[0] == "vt")
-      uvs.append(QVector2D(list[1].toFloat(), list[2].toFloat()));
-    else if (list[0] == "vn")
-      normals.append(
-          QVector3D(list[1].toFloat(), list[2].toFloat(), list[3].toFloat()));
-    else if (list[0] == "f") {
-      for (int i = 1; i <= 3; i++) {
-        QStringList innerList = list[i].split("/");
-        vertexes.append(VertexData(vertices[innerList[0].toInt() - 1],
-                                   uvs[innerList[1].toInt() - 1],
-                                   normals[innerList[2].toInt() - 1]));
-        indexes.append(indexes.size());
-      }
-    }
-  }
   m_arrayBuffer.create();
   m_arrayBuffer.bind();
-  m_arrayBuffer.allocate(vertexes.constData(),
-                         vertexes.size() * sizeof(VertexData));
+  m_arrayBuffer.allocate(model->triangles.constData(),
+                         model->triangles.size() * sizeof(VertexData));
   m_indexBuffer.create();
   m_indexBuffer.bind();
-  m_indexBuffer.allocate(indexes.constData(), indexes.size() * sizeof(GLuint));
+  m_indexBuffer.allocate(model->indices.constData(),
+                         model->indices.size() * sizeof(GLuint));
   repaint();
 }
 
@@ -153,21 +118,20 @@ void OpenGLViewer::genTexture(float red, float green, float blue) {
   unsigned int texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  unsigned char *data = new unsigned char[3];
-  data[0] = (unsigned char)red;
-  data[1] = (unsigned char)green;
-  data[2] = (unsigned char)blue;
+  uint8_t *data = new uint8_t[3];
+  data[0] = (uint8_t)red;
+  data[1] = (uint8_t)green;
+  data[2] = (uint8_t)blue;
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE,
                data);
   delete[] data;
 }
 
 void OpenGLViewer::setTexture(QString filename) {
-  delete m_texture;
+  if (m_texture) delete m_texture;
   m_texture = new QOpenGLTexture(
       QImage(QFileInfo(filename).absoluteFilePath()).mirrored());
-  model->texPath = filename;
-  repaint();
+  m_texture->bind(0);
 }
 
 void OpenGLViewer::initShaders() {
@@ -191,82 +155,62 @@ OpenGLViewer::~OpenGLViewer() {
   m_arrayBuffer.destroy();
 }
 
-void OpenGLViewer::setVec3(float red, float green, float blue) {
-  model->bgColor[0] = red;
-  model->bgColor[1] = green;
-  model->bgColor[2] = blue;
-}
-
-void OpenGLViewer::rotateModelX(float angle) {
-  QVector3D axis = QVector3D(1.0, 0.0, 0.0);
-  model->rotation =
-      QQuaternion::fromAxisAndAngle(axis, angle) * model->rotation;
-  update();
-}
-
-void OpenGLViewer::rotateModelY(float angle) {
-  QVector3D axis = QVector3D(0.0, 1.0, 0.0);
-  model->rotation =
-      QQuaternion::fromAxisAndAngle(axis, angle) * model->rotation;
-  update();
-}
-
-void OpenGLViewer::rotateModelZ(float angle) {
-  QVector3D axis = QVector3D(0.0, 0.0, 1.0);
-  model->rotation =
-      QQuaternion::fromAxisAndAngle(axis, angle) * model->rotation;
-  update();
-}
-
-void OpenGLViewer::scaleModelX(int direction) {
-  if (model->scaleX >= -99 || direction > 0) {
-    model->scaleX += direction;
+void OpenGLViewer::rotateModel(float angleX, float angleY, float angleZ) {
+  QVector3D axis[3] = {QVector3D(1.0, 0.0, 0.0), QVector3D(0.0, 1.0, 0.0),
+                       QVector3D(0.0, 0.0, 1.0)};
+  float angle[3] = {angleX, angleY, angleZ};
+  for (int i = 0; i < 3; i++) {
+    model->rotation *= QQuaternion::fromAxisAndAngle(axis[i], angle[i]);
     update();
   }
 }
 
-void OpenGLViewer::scaleModelY(int direction) {
-  if (model->scaleY >= -99 || direction > 0) {
-    model->scaleY += direction;
-    update();
-  }
-}
-
-void OpenGLViewer::scaleModelZ(int direction) {
-  if (model->scaleZ >= -99 || direction > 0) {
-    model->scaleZ += direction;
-    update();
-  }
-}
-
-void OpenGLViewer::translateModeleX(int direction) {
-  model->translateX += direction;
+void OpenGLViewer::scaleModel(float dirX, float dirY, float dirZ) {
+  if (model->scaleX >= -99 || dirX > 0) model->scaleX += dirX;
+  if (model->scaleY >= -99 || dirY > 0) model->scaleY += dirY;
+  if (model->scaleZ >= -99 || dirZ > 0) model->scaleZ += dirZ;
   update();
 }
 
-void OpenGLViewer::translateModeleY(int direction) {
-  model->translateY += direction;
+void OpenGLViewer::translateModel(float dirX, float dirY, float dirZ) {
+  model->translateX += dirX;
+  model->translateY += dirY;
+  model->translateZ += dirZ;
   update();
 }
 
-void OpenGLViewer::translateModeleZ(int direction) {
-  model->translateZ += direction;
-  update();
+void OpenGLViewer::mousePressEvent(QMouseEvent *event) {
+  mousePos = event->pos();
+  model->prevRotX = model->rotationX;
+  model->prevRotY = model->rotationY;
 }
 
-void OpenGLViewer::setProj() {
-  if (typeProj == 'c')
-    typeProj = 'p';
-  else if (typeProj == 'p')
-    typeProj = 'c';
+void OpenGLViewer::mouseMoveEvent(QMouseEvent *event) {
+  model->rotationY = model->prevRotY + event->pos().x() - mousePos.x();
+  model->rotationX = model->prevRotX + event->pos().y() - mousePos.y();
   update();
+}
+void OpenGLViewer::mouseReleaseEvent(QMouseEvent *event) {
+  model->prevRotX = model->rotationX;
+  model->prevRotY = model->rotationY;
+  mousePos = event->pos();
+}
+
+void OpenGLViewer::mouseWheelEvent(QWheelEvent *event) {
+  QPoint pixels = event->pixelDelta(), angle = event->angleDelta() / 8;
+  int steps = 0;
+  if (!pixels.isNull()) steps = pixels.y();
+  else if (!angle.isNull()) steps = angle.y() / 15;
+  double scaleFactor = 1.0 + steps * 0.001f;
+  if (scaleFactor < 0.1f) scaleFactor = 0.1f;
+  scaleModel(scaleFactor, scaleFactor, scaleFactor);
 }
 
 void OpenGLViewer::saveIMG(int jpg) {
   QOpenGLContext::currentContext()->functions()->glFlush();
   std::vector<char> buffer(this->width() * this->height() * 3);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(0, 0, this->width(), this->height(), GL_RGB, GL_UNSIGNED_BYTE,
+  glReadPixels(0, 12, this->width(), this->height(), GL_RGB, GL_UNSIGNED_BYTE,
                buffer.data());
   stbi_flip_vertically_on_write(true);
   if (jpg) {
@@ -303,16 +247,14 @@ void OpenGLViewer::saveGIF(float x, float y, float z) {
   for (int i = 0; i < frames; i++) {
     GifWriteFrame(&gif, writeFrame(width, height, channels).data(), width,
                   height, delay);
-    rotateModelX(x / frames);
-    rotateModelY(y / frames);
-    rotateModelZ(z / frames);
+    rotateModel(x / frames, y / frames, z / frames);
     repaint();
   }
   GifEnd(&gif);
   for (int i = 0; i < frames; i++) {
-    rotateModelZ(-z / frames);
-    rotateModelY(-y / frames);
-    rotateModelX(-x / frames);
+    rotateModel(0, 0, -z / frames);
+    rotateModel(0, -y / frames, 0);
+    rotateModel(-x / frames, 0, 0);
   }
   repaint();
 }
@@ -320,8 +262,7 @@ void OpenGLViewer::saveGIF(float x, float y, float z) {
 std::vector<uint8_t> OpenGLViewer::writeFrame(int width, int height,
                                               int channels) {
   std::vector<uint8_t> buffer(width * height * channels);
-  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-
+  glReadPixels(0, 12, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
   for (int line = 0; line != height / 2; line++) {
     std::swap_ranges(buffer.begin() + channels * width * line,
                      buffer.begin() + channels * width * (line + 1),
