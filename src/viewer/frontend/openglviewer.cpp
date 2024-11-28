@@ -196,14 +196,12 @@ void OpenGLViewer::mouseReleaseEvent(QMouseEvent *event) {
   mousePos = event->pos();
 }
 
-void OpenGLViewer::mouseWheelEvent(QWheelEvent *event) {
+void OpenGLViewer::wheelEvent(QWheelEvent *event) {
   QPoint pixels = event->pixelDelta(), angle = event->angleDelta() / 8;
   int steps = 0;
   if (!pixels.isNull()) steps = pixels.y();
   else if (!angle.isNull()) steps = angle.y() / 15;
-  double scaleFactor = 1.0 + steps * 0.001f;
-  if (scaleFactor < 0.1f) scaleFactor = 0.1f;
-  scaleModel(scaleFactor, scaleFactor, scaleFactor);
+  scaleModel(steps, steps, steps);
 }
 
 void OpenGLViewer::saveIMG(int jpg) {

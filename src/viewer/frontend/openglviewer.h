@@ -42,7 +42,7 @@ class OpenGLViewer : public QOpenGLWidget {
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
-  void mouseWheelEvent(QWheelEvent *event);
+  void wheelEvent(QWheelEvent *event);
   void initShaders();
 };
 }  // namespace s21

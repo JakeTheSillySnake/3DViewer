@@ -34,7 +34,7 @@ install:
 	cd $(FRONT); make viewer
 	@echo "\Simple Viewer installed successfully.\n"
 	cd $(PROJECT_DIR); ./viewer
-
+220
 uninstall:
 	rm -rf $(PROJECT_DIR)
 	@echo "\Simple Viewer uninstalled.\n"
