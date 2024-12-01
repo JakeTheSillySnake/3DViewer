@@ -30,12 +30,18 @@ class Viewer : public QMainWindow {
   void addButton(int x, int y, int width, int height, QString text);
 
  private slots:
+  void pointColor();
+  void pointSize();
   void pointMode0();
   void pointMode1();
   void pointMode2();
+  void thickness();
+  void wireColor();
+  void openTex();
   void toggleDashed();
   void toggleWireframe();
   void toggleProj();
+  void changeBackground();
   void saveJPG();
   void saveBMP();
   void saveGIF();

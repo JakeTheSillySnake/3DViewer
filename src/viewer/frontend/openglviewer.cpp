@@ -1,32 +1,35 @@
 #include "openglviewer.h"
 
-#include "../../external/gif.h"  // saving
+#include "../../external/gif.h"  // saving gif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #define STB_IMAGE_WRITE_IMPLEMENTATION  // saving jpg, bmp
 #include "../../external/stb_image_write.h"
+#pragma GCC diagnostic pop
 
 using namespace s21;
 
-OpenGLViewer::OpenGLViewer(QWidget *parent, Model *model)
+OpenGLViewer::OpenGLViewer(QWidget *parent, Controller *c)
     : QOpenGLWidget{parent},
       m_texture(0),
       m_indexBuffer(QOpenGLBuffer::IndexBuffer),
-      model(model) {}
+      c(c) {}
 
 void OpenGLViewer::initializeGL() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   initShaders();
   dataProcessing();
-  connect(model, SIGNAL(updateSignal()), this, SLOT(update()));
-  connect(model, SIGNAL(uploadFileSignal()), this, SLOT(dataProcessing()));
-  connect(model, SIGNAL(repaintModelSignal()), this, SLOT(repaint()));
+  connect(c->model, SIGNAL(updateSignal()), this, SLOT(update()));
+  connect(c->model, SIGNAL(uploadFileSignal()), this, SLOT(dataProcessing()));
+  connect(c->model, SIGNAL(repaintModelSignal()), this, SLOT(repaint()));
 }
 
 void OpenGLViewer::resizeGL(int nWidth, int nHeight) {
   float aspect = nWidth / (float)nHeight;
   projectMatrix.setToIdentity();
-  if (!model->isParallel)
+  if (!c->model->isParallel)
     projectMatrix.perspective(45, aspect, 0.1f, 800.0f);
   else
     projectMatrix.ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 800.0f);
@@ -36,13 +39,14 @@ void OpenGLViewer::paintGL() {
   resizeGL(this->width(), this->height());
   setMode();
   setMatrix();
-  if (model->isWireframe && model->pointMode) {
-    genTexture(model->pointColor[0], model->pointColor[1],
-               model->pointColor[2]);
+  if (c->model->isWireframe && c->model->pointMode) {
+    genTexture(c->model->pointColor[0], c->model->pointColor[1],
+               c->model->pointColor[2]);
     glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
   }
-  if (model->isWireframe) {
-    genTexture(model->wireColor[0], model->wireColor[1], model->wireColor[2]);
+  if (c->model->isWireframe) {
+    genTexture(c->model->wireColor[0], c->model->wireColor[1],
+               c->model->wireColor[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
   glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
@@ -50,16 +54,16 @@ void OpenGLViewer::paintGL() {
 }
 
 void OpenGLViewer::setMode() {
-  setTexture(model->texPath);
-  if (model->isDashed && model->isWireframe) {
+  setTexture(c->model->texPath);
+  if (c->model->isDashed && c->model->isWireframe) {
     glEnable(GL_LINE_STIPPLE);
     glLineStipple(4, 0xAAAA);
   } else {
     glDisable(GL_LINE_STIPPLE);
   }
-  if (model->isWireframe && model->pointMode) {
+  if (c->model->isWireframe && c->model->pointMode) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-    if (model->pointMode == 2) {
+    if (c->model->pointMode == 2) {
       glEnable(GL_POINT_SMOOTH);
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -69,22 +73,24 @@ void OpenGLViewer::setMode() {
     }
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glClearColor(model->bgColor[0] / 255.0, model->bgColor[1] / 255.0,
-               model->bgColor[2] / 255.0, 1.0f);
-  glLineWidth(model->lineSize);
-  glPointSize(model->pointSize);
+  glClearColor(c->model->bgColor[0] / 255.0, c->model->bgColor[1] / 255.0,
+               c->model->bgColor[2] / 255.0, 1.0f);
+  glLineWidth(c->model->lineSize);
+  glPointSize(c->model->pointSize);
 }
 
 void OpenGLViewer::setMatrix() {
   modelViewMatrix.setToIdentity();
-  modelViewMatrix.translate(0.01 * model->translateX, 0.01 * model->translateY,
-                            0.01 * model->translateZ - 5.0);
-  modelViewMatrix.rotate(model->rotation);
-  modelViewMatrix.rotate(model->rotationX, 1, 0, 0);
-  modelViewMatrix.rotate(model->rotationY, 0, 1, 0);
+  modelViewMatrix.translate(0.01 * c->model->translateX,
+                            0.01 * c->model->translateY,
+                            0.01 * c->model->translateZ - 5.0);
+  modelViewMatrix.rotate(c->model->rotation);
+  modelViewMatrix.rotate(c->model->rotationX, 1, 0, 0);
+  modelViewMatrix.rotate(c->model->rotationY, 0, 1, 0);
   QMatrix4x4 scalingMatrix;
-  scalingMatrix.scale(1.0f + 0.01 * model->scaleX, 1.0f + 0.01 * model->scaleY,
-                      1.0f + 0.01 * model->scaleZ);
+  scalingMatrix.scale(1.0f + 0.01 * c->model->scaleX,
+                      1.0f + 0.01 * c->model->scaleY,
+                      1.0f + 0.01 * c->model->scaleZ);
   modelViewMatrix *= scalingMatrix;
   m_program.setUniformValue("qt_ModelViewProjectionMatrix",
                             projectMatrix * modelViewMatrix);
@@ -105,12 +111,12 @@ void OpenGLViewer::dataProcessing() {
   if (m_indexBuffer.isCreated()) m_indexBuffer.destroy();
   m_arrayBuffer.create();
   m_arrayBuffer.bind();
-  m_arrayBuffer.allocate(model->triangles.constData(),
-                         model->triangles.size() * sizeof(VertexData));
+  m_arrayBuffer.allocate(c->model->triangles.constData(),
+                         c->model->triangles.size() * sizeof(VertexData));
   m_indexBuffer.create();
   m_indexBuffer.bind();
-  m_indexBuffer.allocate(model->indices.constData(),
-                         model->indices.size() * sizeof(GLuint));
+  m_indexBuffer.allocate(c->model->indices.constData(),
+                         c->model->indices.size() * sizeof(GLuint));
   repaint();
 }
 
@@ -135,10 +141,10 @@ void OpenGLViewer::setTexture(QString filename) {
 }
 
 void OpenGLViewer::initShaders() {
-  QFile tex = QFileInfo(model->texPath).absoluteFilePath();
-  if (!tex.exists()) model->texPath = "../../assets/textures/default.png";
+  QFile tex = QFileInfo(c->model->texPath).absoluteFilePath();
+  if (!tex.exists()) c->model->texPath = "../../assets/textures/default.png";
   m_texture = new QOpenGLTexture(
-      QImage(QFileInfo(model->texPath).absoluteFilePath()).mirrored());
+      QImage(QFileInfo(c->model->texPath).absoluteFilePath()).mirrored());
   m_program.addShaderFromSourceFile(
       QOpenGLShader::Vertex,
       QFileInfo("../../assets/shaders/vshader.vsh").absoluteFilePath());
@@ -155,53 +161,31 @@ OpenGLViewer::~OpenGLViewer() {
   m_arrayBuffer.destroy();
 }
 
-void OpenGLViewer::rotateModel(float angleX, float angleY, float angleZ) {
-  QVector3D axis[3] = {QVector3D(1.0, 0.0, 0.0), QVector3D(0.0, 1.0, 0.0),
-                       QVector3D(0.0, 0.0, 1.0)};
-  float angle[3] = {angleX, angleY, angleZ};
-  for (int i = 0; i < 3; i++) {
-    model->rotation *= QQuaternion::fromAxisAndAngle(axis[i], angle[i]);
-    update();
-  }
-}
-
-void OpenGLViewer::scaleModel(float dirX, float dirY, float dirZ) {
-  if (model->scaleX >= -99 || dirX > 0) model->scaleX += dirX;
-  if (model->scaleY >= -99 || dirY > 0) model->scaleY += dirY;
-  if (model->scaleZ >= -99 || dirZ > 0) model->scaleZ += dirZ;
-  update();
-}
-
-void OpenGLViewer::translateModel(float dirX, float dirY, float dirZ) {
-  model->translateX += dirX;
-  model->translateY += dirY;
-  model->translateZ += dirZ;
-  update();
-}
-
 void OpenGLViewer::mousePressEvent(QMouseEvent *event) {
   mousePos = event->pos();
-  model->prevRotX = model->rotationX;
-  model->prevRotY = model->rotationY;
+  c->model->prevRotX = c->model->rotationX;
+  c->model->prevRotY = c->model->rotationY;
 }
 
 void OpenGLViewer::mouseMoveEvent(QMouseEvent *event) {
-  model->rotationY = model->prevRotY + event->pos().x() - mousePos.x();
-  model->rotationX = model->prevRotX + event->pos().y() - mousePos.y();
+  c->model->rotationY = c->model->prevRotY + event->pos().x() - mousePos.x();
+  c->model->rotationX = c->model->prevRotX + event->pos().y() - mousePos.y();
   update();
 }
 void OpenGLViewer::mouseReleaseEvent(QMouseEvent *event) {
-  model->prevRotX = model->rotationX;
-  model->prevRotY = model->rotationY;
+  c->model->prevRotX = c->model->rotationX;
+  c->model->prevRotY = c->model->rotationY;
   mousePos = event->pos();
 }
 
 void OpenGLViewer::wheelEvent(QWheelEvent *event) {
   QPoint pixels = event->pixelDelta(), angle = event->angleDelta() / 8;
   int steps = 0;
-  if (!pixels.isNull()) steps = pixels.y();
-  else if (!angle.isNull()) steps = angle.y() / 15;
-  scaleModel(steps, steps, steps);
+  if (!pixels.isNull())
+    steps = pixels.y();
+  else if (!angle.isNull())
+    steps = angle.y() / 15;
+  c->scaleModel(steps, steps, steps);
 }
 
 void OpenGLViewer::saveIMG(int jpg) {
@@ -245,14 +229,14 @@ void OpenGLViewer::saveGIF(float x, float y, float z) {
   for (int i = 0; i < frames; i++) {
     GifWriteFrame(&gif, writeFrame(width, height, channels).data(), width,
                   height, delay);
-    rotateModel(x / frames, y / frames, z / frames);
+    c->rotateModel(x / frames, y / frames, z / frames);
     repaint();
   }
   GifEnd(&gif);
   for (int i = 0; i < frames; i++) {
-    rotateModel(0, 0, -z / frames);
-    rotateModel(0, -y / frames, 0);
-    rotateModel(-x / frames, 0, 0);
+    c->rotateModel(0, 0, -z / frames);
+    c->rotateModel(0, -y / frames, 0);
+    c->rotateModel(-x / frames, 0, 0);
   }
   repaint();
 }

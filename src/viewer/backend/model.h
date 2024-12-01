@@ -25,7 +25,8 @@ class Model : public QObject {
   QString path = "";
   QString texPath = "../../assets/textures/default.png";
   QString settPath = "../../assets/settings.conf";
-  bool isWireframe = false, isDashed = false, showInfo = true, isParallel = false;
+  bool isWireframe = false, isDashed = false, showInfo = true,
+       isParallel = false;
   int lineSize = 1, pointMode = 1, pointSize = 5;
   float scaleX = 0, scaleY = 0, scaleZ = 0;
   float translateX = 0, translateY = 0, translateZ = 0;
@@ -36,6 +37,7 @@ class Model : public QObject {
 
   Model() { loadSettings(); }
   ~Model() { saveSettings(); }
+
   void loadSettings();
   void saveSettings();
   void loadOBJ();

@@ -13,7 +13,8 @@ SOURCES += \
     ../main.cpp \
     ../backend/model.cpp \
     openglviewer.cpp \
-    viewer.cpp
+    viewer.cpp \
+    ../tests/tests.cpp
 
 HEADERS += \
     ../backend/controller.h \

@@ -15,11 +15,12 @@ class OpenGLViewer : public QOpenGLWidget {
   QOpenGLShaderProgram m_program;
   QOpenGLTexture *m_texture;
   QOpenGLBuffer m_arrayBuffer, m_indexBuffer;
-  Model *model;
+  Controller *c;
   QPointF mousePos;
 
-  OpenGLViewer(QWidget *parent, Model *model);
+  OpenGLViewer(QWidget *parent, Controller *c);
   ~OpenGLViewer();
+
   void setTexture(QString filename);
   void genTexture(float red, float green, float blue);
   char *genFilename(QString name);
@@ -27,13 +28,10 @@ class OpenGLViewer : public QOpenGLWidget {
   std::vector<uint8_t> writeFrame(int width, int height, int channels);
   void setMode();
   void setMatrix();
+  void saveIMG(int mode);
 
  public slots:
-  void saveIMG(int mode);
   void dataProcessing();
-  void rotateModel(float angleX, float angleY, float angleZ);
-  void scaleModel(float dirX, float dirY, float dirZ);
-  void translateModel(float dirX, float dirY, float dirZ);
 
  private:
   void initializeGL();

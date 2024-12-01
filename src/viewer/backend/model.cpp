@@ -94,7 +94,7 @@ void Model::loadSettings() {
 }
 
 void Model::saveSettings() {
-auto filePath = path.toLocal8Bit(), texturePath = texPath.toLocal8Bit(),
+  auto filePath = path.toLocal8Bit(), texturePath = texPath.toLocal8Bit(),
        settings = settPath.toLocal8Bit();
   FILE *fptr = fopen(settings.data(), "w");
   fprintf(fptr,
@@ -105,6 +105,7 @@ auto filePath = path.toLocal8Bit(), texturePath = texPath.toLocal8Bit(),
           (int)bgColor[0], (int)bgColor[1], (int)bgColor[2], (int)wireColor[0],
           (int)wireColor[1], (int)wireColor[2], pointMode, pointSize, lineSize,
           isWireframe, isDashed, showInfo, filePath.data(), texturePath.data(),
-          (int)pointColor[0], (int)pointColor[1], (int)pointColor[2], isParallel);
+          (int)pointColor[0], (int)pointColor[1], (int)pointColor[2],
+          isParallel);
   fclose(fptr);
 }
