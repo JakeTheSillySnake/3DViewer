@@ -30,6 +30,7 @@ class Viewer : public QMainWindow {
   void addButton(int x, int y, int width, int height, QString text);
 
  private slots:
+  void errorMessage();
   void pointColor();
   void pointSize();
   void pointMode0();
@@ -59,6 +60,7 @@ class Viewer : public QMainWindow {
   QDockWidget *dock;
   QFont *font;
   QString filename;
+  QErrorMessage *msg;
   OpenGLViewer *glWindow;
   Controller *c;
   int edges;

@@ -10,7 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     ../backend/controller.cpp \
-    ../main.cpp \
+    main.cpp \
     ../backend/model.cpp \
     openglviewer.cpp \
     viewer.cpp \

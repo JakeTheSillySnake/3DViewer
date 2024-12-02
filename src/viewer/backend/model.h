@@ -40,11 +40,12 @@ class Model : public QObject {
 
   void loadSettings();
   void saveSettings();
-  void loadOBJ();
+  void loadOBJ(QString &file);
 
  signals:
   void updateSignal();
   void uploadFileSignal();
+  void errorFileSignal();
   void repaintModelSignal();
 };
 }  // namespace s21

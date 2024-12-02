@@ -5,8 +5,7 @@ using namespace s21;
 Controller::Controller(Model *model) : model(model) {}
 
 void Controller::changeFile(QString &path) {
-  model->path = path;
-  model->loadOBJ();
+  model->loadOBJ(path);
   emit model->uploadFileSignal();
 }
 

@@ -1,7 +1,7 @@
 #include <QApplication>
 
-#include "frontend/openglviewer.h"
-#include "frontend/viewer.h"
+#include "openglviewer.h"
+#include "viewer.h"
 
 using namespace s21;
 

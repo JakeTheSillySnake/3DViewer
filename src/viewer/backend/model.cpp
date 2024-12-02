@@ -5,44 +5,51 @@
 
 using namespace s21;
 
-void Model::loadOBJ() {
-  QFile file(QFileInfo(path).absoluteFilePath());
-  if (!file.exists()) {
+void Model::loadOBJ(QString &file) {
+  QFile objfile(QFileInfo(file).absoluteFilePath());
+  if (!objfile.exists()) {
     return;
   }
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
-  auto pathData = path.toLocal8Bit();
+  auto pathData = file.toLocal8Bit();
   bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
                                   pathData.data(), "../../assets/models");
   if (!err.empty()) std::cerr << err << std::endl;
-  if (!success)
-    std::cerr << "Oops! Unable to load file " << pathData.data() << std::endl;
-  else {
-    QVector<QVector3D> vertices, normals;
-    QVector<QVector2D> uvs;
-    triangles.clear();
-    indices.clear();
-    for (size_t i = 0; i < shapes.size(); i++) {
-      tinyobj::shape_t &shape = shapes[i];
-      tinyobj::mesh_t &mesh = shape.mesh;
-      for (size_t j = 0; j < mesh.indices.size(); j++) {
-        tinyobj::index_t index = mesh.indices[j];
-        QVector3D pos = {attrib.vertices[index.vertex_index * 3],
-                         attrib.vertices[index.vertex_index * 3 + 1],
-                         attrib.vertices[index.vertex_index * 3 + 2]};
-        QVector3D normal = {attrib.normals[index.normal_index * 3],
-                            attrib.normals[index.normal_index * 3 + 1],
-                            attrib.normals[index.normal_index * 3 + 2]};
-        QVector2D texCoord = {attrib.texcoords[index.texcoord_index * 2],
-                              attrib.texcoords[index.texcoord_index * 2 + 1]};
-        triangles.push_back(VertexData(pos, texCoord, normal));
-        indices.push_back(indices.size());
-      }
+  if (!success || !attrib.texcoords.size()) {
+    emit errorFileSignal();
+    return;
+  }
+  QVector<QVector3D> vertices, normals;
+  QVector<QVector2D> uvs;
+  triangles.clear();
+  indices.clear();
+  for (size_t i = 0; i < shapes.size(); i++) {
+    tinyobj::shape_t &shape = shapes[i];
+    tinyobj::mesh_t &mesh = shape.mesh;
+    for (size_t j = 0; j < mesh.indices.size(); j++) {
+      tinyobj::index_t index = mesh.indices[j];
+      QVector3D pos = {attrib.vertices[index.vertex_index * 3],
+                       attrib.vertices[index.vertex_index * 3 + 1],
+                       attrib.vertices[index.vertex_index * 3 + 2]};
+      QVector3D normal = {attrib.normals[index.normal_index * 3],
+                          attrib.normals[index.normal_index * 3 + 1],
+                          attrib.normals[index.normal_index * 3 + 2]};
+      QVector2D texCoord = {attrib.texcoords[index.texcoord_index * 2],
+                            attrib.texcoords[index.texcoord_index * 2 + 1]};
+      triangles.push_back(VertexData(pos, texCoord, normal));
+      indices.push_back(indices.size());
     }
   }
+  scaleX = 0;
+  scaleY = 0;
+  scaleZ = 0;
+  translateX = 0;
+  translateY = 0;
+  translateZ = 0;
+  path = file;
 }
 
 void Model::loadSettings() {

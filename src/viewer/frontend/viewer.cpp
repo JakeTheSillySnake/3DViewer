@@ -8,6 +8,7 @@ Viewer::Viewer(Controller *controller, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::Viewer) {
   ui->setupUi(this);
   glWindow = new OpenGLViewer(nullptr, controller);
+  msg = new QErrorMessage(0);
   c = controller;
   setCentralWidget(glWindow);
   loadFont();
@@ -100,6 +101,7 @@ void Viewer::connectSlots() {
   connect(ui->actionCircle, SIGNAL(triggered()), this, SLOT(pointMode2()));
   connect(ui->actionSize, SIGNAL(triggered()), this, SLOT(pointSize()));
   connect(ui->actionColor, SIGNAL(triggered()), this, SLOT(pointColor()));
+  connect(c->model, SIGNAL(errorFileSignal()), this, SLOT(errorMessage()));
 }
 
 void Viewer::drawField() {
@@ -112,6 +114,10 @@ void Viewer::drawField() {
     filename = "";
   drawStats();
   view->update();
+}
+
+void Viewer::errorMessage() {
+  msg->showMessage("Oops! Unable to process this file.");
 }
 
 void Viewer::pointColor() {

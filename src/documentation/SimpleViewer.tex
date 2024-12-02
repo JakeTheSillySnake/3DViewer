@@ -1,0 +1,144 @@
+%% LyX 2.3.6 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{babel}
+
+
+
+
+
+
+
+
+
+
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+\title{\texttt{\textbf{Simple 3D Viewer Manual}}}
+\author{by JakeTheSillySnake (@ginzburg\_jake on Telegram)}
+\date{Last updated December 2024}
+
+\maketitle
+\tableofcontents{}
+
+\section{Introduction}
+
+This document describes how to install, run, check and remove Simple
+Viewer on Linux and Unix-like systems. Please note that the program
+was written and tested on Ubuntu 22.04 LTS, so its behaviour may differ
+if you use other versions or OS distributions.
+
+\section{Installation \& Running}
+
+\subsection{Prerequisites}
+
+Correct compilation and running of the program depends on other utilities
+and libraries. Check that you have their latest versions before proceeding: 
+\begin{description}
+\item [{App~Compilation~\&~Running}] gcc, make, Qt5 
+\item [{Testing}] GTest library 
+\item [{GCOV~Report}] gcov, lcov 
+\item [{Leaks~Check}] valgrind 
+\item [{Convert~Manual~to~DVI}] texi2dvi 
+\end{description}
+
+\subsection{Setup}
+
+Download or clone (\texttt{git clone <link\_to\_repo>}) the source
+repository to where you can easily find it. Then type and run the
+following commands in the terminal: 
+\begin{enumerate}
+\item \texttt{cd <path-to-git-folder>/src/viewer} 
+\item \texttt{make install}
+\end{enumerate}
+Now the program is compiled, placing the app in a folder named \texttt{SimpleViewer/}.
+The app should open automatically. If you want to open it later using
+command line, run\texttt{ make viewer.} If there are errors, you're
+likely missing some packages. Check \textbf{Prerequisites}.
+
+\subsection{Usage}
+
+The app layout should be fairly intuitive. On the first load, you'll
+see a horizontal \textbf{Menu Tab} plus an \textbf{Information Tab}
+on the right side of the screen. The \textbf{Menu Tab} is divided
+into three sub-categories and the options you choose are saved after
+each session:
+\begin{enumerate}
+\item \textbf{File}
+\begin{enumerate}
+\item Upload~file --- \emph{choose .obj file to display}
+\item Save~as~.bmp,~.jpg --- \emph{save current render as a picture}
+\item Make~screencast --- \emph{save current render as a GIF (5sec, 10
+frames/sec, 640x480) with custom model rotation}
+\item Exit --- \emph{close the app}
+\end{enumerate}
+\item \textbf{Model}
+\begin{enumerate}
+\item Rotate --- \emph{rotate the model on a given axis by N degrees}
+\item Translate --- \emph{translate the model on a given axis by N degrees}
+\item Scale --- \emph{scale the model on a given axis by N degrees}
+\item Wireframe --- \emph{display model as wireframe (as opposed to solid)}
+\item Parallel projection --- \emph{apply parallel projection (as opposed
+to central, or perspective projection)}
+\end{enumerate}
+\item \textbf{Settings}
+\begin{enumerate}
+\item Set background --- \emph{change background colour}
+\item Set texture --- \emph{choose texture (only in SOLID MODE)}
+\item Vertices --- \emph{set colour, size and display mode (circle, square,
+none) of vertices (only in WIREFRAME MODE)}
+\item Edges --- \emph{set colour, size and dashed mode of edges (only in
+WIREFRAME MODE)}
+\item Show information --- \emph{toggle the visibility of the} \textbf{Information
+Tab}
+\end{enumerate}
+\end{enumerate}
+The model is initially displayed in the central part of the screen\footnote{Tip: if you can't see your model at first, try changing its dimensions
+and coordinates. Also check the settings to ensure that the model
+and background are differently coloured.}. The \textbf{Information Tab} lists the keys to manipulate your model
+as well as its number of edges and vertices. Additionally, you can\emph{
+}\textbf{click and drag the mouse} to \textbf{rotate} your object
+and \textbf{scroll with the mouse wheel }to \textbf{scale} it.
+
+\section{Structure \& testing}
+
+The program was made using C++17 language and standard libraries,
+with the interface provided by Qt5. It uses an MVC design structure
+to separate the interface from the controller and model. The source
+code can be found in \texttt{viewer/backend} and \texttt{viewer/frontend}
+folders. The backend libraries can be tested with GTest: 
+\begin{enumerate}
+\item To run tests:\texttt{ make test} 
+\item To display test coverage:\texttt{ make gcov\_report}
+\item To check for leaks: \texttt{make valgrind } 
+\end{enumerate}
+Running \texttt{make} or \texttt{make all} will reinstall and compile
+the program. You can get DVI documentation with \texttt{make dvi}
+or a distribution .tar.gz package with \texttt{make dist}. Also note:
+\begin{enumerate}
+\item Not every model can be processed by this simple app --- check\texttt{
+assets/models} for inspiration
+\item The basic textures and shaders in \texttt{assets/textures} and \texttt{assets/shaders}
+are needed for the app to function (but you can mod and replace them
+if you know what you're doing)
+\item This app uses external libraries to process .gif, .jpg, .bmp and .obj
+files: please see \texttt{s}rc/\texttt{external} for licenses
+\end{enumerate}
+
+\section{Deinstallation}
+
+Simply run \texttt{make uninstall.} This will remove the \texttt{SimpleViewer/}
+directory but not the original download, which can be safely deleted
+afterwards.
+
+\subparagraph{If you wish to suggest an improvement or report a bug, contact me
+@ginzburg\_jake (Telegram) or JakeTheSillySnake (GitHub).}
+\end{document}

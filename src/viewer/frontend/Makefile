@@ -53,7 +53,7 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../backend/controller.cpp \
-		../main.cpp \
+		main.cpp \
 		../backend/model.cpp \
 		openglviewer.cpp \
 		viewer.cpp \
@@ -166,7 +166,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		viewer.h \
 		../../external/stb_image_write.h \
 		../../external/gif.h ../backend/controller.cpp \
-		../main.cpp \
+		main.cpp \
 		../backend/model.cpp \
 		openglviewer.cpp \
 		viewer.cpp \
@@ -179,20 +179,17 @@ TARGET        = ../SimpleViewer/SimpleViewer
 first: all
 ####### Build rules
 
-viewer: ui_viewer.h $(OBJECTS)  
-	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
-	make clean
+viewer: clean ui_viewer.h $(OBJECTS)  
+	$(LINK) $(LFLAGS) --coverage $(OBJECTS) $(OBJCOMP) -o $(TARGET) $(LIBS) -lstdc++
 	
 test:	clean $(TESTOBJ)
-	$(LINK) $(LFLAGS) -o ../SimpleViewer/test.out $(TESTOBJ) $(LIBS)
-	make clean
+	$(LINK) $(LFLAGS) --coverage $(TESTOBJ) -lstdc++ -o ../SimpleViewer/test.out $(LIBS)
 	
 gcov:	clean $(TESTOBJ)
 	$(LINK) $(LFLAGS) --coverage $(TESTOBJ) -lstdc++ -o test.out $(LIBS)
 	./test.out
 	lcov -t "./test.out" -exclude='*moc*' -exclude='*.h*' -exclude='*tests*' -exclude='*11*' -o ../report.info -c -d .
 	genhtml -o ../report ../report.info
-	make clean
 
 Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -383,11 +380,11 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../backend/controller.h ../backend/model.h openglviewer.h viewer.h ../../external/stb_image_write.h ../../external/gif.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../backend/controller.cpp ../main.cpp ../backend/model.cpp openglviewer.cpp viewer.cpp ../tests/tests.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../backend/controller.cpp main.cpp ../backend/model.cpp openglviewer.cpp viewer.cpp ../tests/tests.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents viewer.ui $(DISTDIR)/
 
 
-clean: compiler_clean clean_gcov
+clean: compiler_clean
 	-$(DEL_FILE) $(OBJECTS) $(TESTOBJ)
 	-$(DEL_FILE) *~ core *.core
 	
@@ -472,11 +469,11 @@ controller.o: ../backend/controller.cpp ../backend/controller.h \
 		../backend/model.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) --coverage -o controller.o ../backend/controller.cpp -lstdc++
 
-main.o: ../main.cpp openglviewer.h \
+main.o: main.cpp openglviewer.h \
 		../backend/controller.h \
 		../backend/model.h \
 		viewer.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) --coverage -o main.o ../main.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) --coverage -o main.o main.cpp
 
 model.o: ../backend/model.cpp ../backend/model.h \
 		../../external/tiny_obj_loader.h

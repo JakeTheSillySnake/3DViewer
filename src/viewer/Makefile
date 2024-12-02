@@ -5,7 +5,10 @@ FRONT = frontend
 TESTS = tests
 
 
-all: clean install test gcov_report
+all: clean reinstall test gcov_report
+
+viewer:
+	cd $(PROJECT_DIR); ./SimpleViewer
 
 test: clean
 	cd $(FRONT); make test
@@ -15,7 +18,7 @@ gcov_report: clean
 	cd $(FRONT); make gcov
 	open ./report/index.html
 
-valgrind: 
+valgrind: clean
 	cd $(FRONT); make test
 	cd $(PROJECT_DIR); valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./test.out
 	
@@ -26,7 +29,9 @@ install:
 	mkdir $(PROJECT_DIR)
 	cd $(FRONT); make viewer
 	@echo "\nSimple Viewer installed successfully.\n"
-	cd $(PROJECT_DIR); ./SimpleViewer
+	cd $(FRONT); make clean
+	cd $(FRONT); make clean_gcov
+	make viewer
 
 uninstall: clean
 	rm -rf $(PROJECT_DIR)
@@ -35,7 +40,7 @@ uninstall: clean
 reinstall: uninstall install
 
 dvi:
-	texi2dvi documentation/games_man.tex
+	texi2dvi ../documentation/SimpleViewer.tex
 	@echo "\nManual was converted to dvi.\n"	
 
 dist:
@@ -47,7 +52,11 @@ dist:
 
 rebuild: clean all
 
-clean: 
+clean_build:
+	cd $(FRONT); make clean
+	cd $(FRONT); make clean_gcov
+
+clean: clean_build
 	rm -rf *.aux *.dvi *.log *.toc *.tar *.gz *.txt 
 	rm -rf ./report *.dSYM *.info
 	@echo "\nAll clean!\n"
