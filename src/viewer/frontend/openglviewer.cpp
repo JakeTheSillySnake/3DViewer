@@ -196,10 +196,14 @@ void OpenGLViewer::saveIMG(int jpg) {
                buffer.data());
   stbi_flip_vertically_on_write(true);
   if (jpg) {
-    stbi_write_jpg(genFilename(".jpg"), this->width(), this->height(), 3,
+    auto filename = genFilename(".jpg");
+    if (filename == NULL) return;
+    stbi_write_jpg(filename, this->width(), this->height(), 3,
                    buffer.data(), 100);
   } else {
-    stbi_write_bmp(genFilename(".bmp"), this->width(), this->height(), 3,
+    auto filename = genFilename(".bmp");
+    if (filename == NULL) return;
+    stbi_write_bmp(filename, this->width(), this->height(), 3,
                    buffer.data());
   }
 }
@@ -208,8 +212,7 @@ char *OpenGLViewer::genFilename(QString name) {
   auto filename = QFileDialog::getSaveFileName(
       0, "Save file", QString("%1/render%2").arg(QDir::currentPath()).arg(name),
       QString("%1").arg(name));
-  if (filename.isEmpty())
-    filename = QString("%1/render%2").arg(QDir::currentPath()).arg(name);
+  if (filename.isEmpty()) return NULL;
   QByteArray data = filename.toLocal8Bit();
   return data.data();
 }
@@ -221,8 +224,7 @@ void OpenGLViewer::saveGIF(float x, float y, float z) {
   auto filename = QFileDialog::getSaveFileName(
       0, "Save file", QString("%1/render.gif").arg(QDir::currentPath()),
       ".gif");
-  if (filename.isEmpty())
-    filename = QString("%1/render.gif").arg(QDir::currentPath());
+  if (filename.isEmpty()) return;
   QByteArray name = filename.toLocal8Bit();
   GifWriter gif;
   GifBegin(&gif, name.data(), width, height, delay);
