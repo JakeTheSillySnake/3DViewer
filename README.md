@@ -99,7 +99,7 @@ _And here's a rotating wireframe sword model (`src/assets/models/sword.obj`)._
 
 </br>
 
-### Structure & testing
+## Structure & testing
 
 The program was made using C++17 language and standard libraries, with the interface provided by Qt5. It uses an MVC design structure to separate the interface from the controller and model. The source code can be found in `src/viewer/backend` and `src/viewer/frontend folders`. The backend libraries can be tested with GTest: 
 
@@ -123,7 +123,7 @@ Also note:
 
 </br>
 
-### Deinstallation
+## Deinstallation
 
 Simply run `make uninstall`. This will remove the `SimpleViewer/` directory but not the original download, which can be safely deleted afterwards.
 
