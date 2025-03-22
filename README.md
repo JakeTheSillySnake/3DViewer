@@ -84,7 +84,7 @@ The model is initially displayed in the central part of the screen (__Tip:__ if 
 Here are some examples of what you can produce with this app:
 
 ![](src/assets/examples/cat.png)
-_A model of a cat (`src/assets/models/cat.obj`) with a texture applied to it (`src/assets/textures/car.jpg`)._
+_A model of a cat (`src/assets/models/cat.obj`) with a texture applied to it (`src/assets/textures/cat.jpg`). [Source](https://free3d.com/3d-model/cat-v1--522281.html)_
 
 </br>
 
@@ -95,7 +95,7 @@ _And here's the same model in wireframe mode._
 
 ![](src/assets/examples/sword.gif)
 </br>
-_And here's a rotating wireframe sword model (`src/assets/models/sword.obj`)._ 
+_And here's a rotating wireframe sword model (`src/assets/models/sword.obj`). [Source](https://free3d.com/3d-model/sting-sword-128810.html)_ 
 
 </br>
 
